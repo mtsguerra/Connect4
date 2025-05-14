@@ -19,27 +19,24 @@ class Interface:
     screen: any = pygame.display.set_mode(size)
     pygame.display.set_caption("Connect4")
 
-    def start_engine(self, bd: board) -> None:
+    def starting_game(self, brd: board):
         """Set up the conditions to the game, as choose game_mode and draw the pygame display"""
         pygame.init()
-        self.draw_options_board()
+        self.draw_menu()
         game_mode = self.choose_option()
-        bd.print_board()
+        brd.print_board()
         self.draw_board()
         pygame.display.update()
-        self.play(bd, game_mode)
+        self.play(brd, game_mode)
 
-    def play(self, bd: board, game_mode: int) -> None:
-        """Run the game"""
-        board = bd.get_board()
+    def play(self, brd: board, game_mode: int):
+        board = brd.get_board()
         game_over = False
-        myfont = pygame.font.SysFont('fonts/SuperMario256.ttf', 50)
-
+        font = pygame.font.SysFont('fonts/SuperMario256.ttf', 50)
         turns = itertools.cycle([1, 2])
         turn = next(turns)
 
         while not game_over:
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT: quit()
 
@@ -52,7 +49,7 @@ class Interface:
                 # jogada do humano:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if turn == 1 or (turn == 2 and game_mode == 1):  # recebe a jogada do humano
-                        if not game.human_move(bd, self, board, turn, event): continue  # verifica se a coluna é valida
+                        if not game.human_move(brd, self, board, turn, event): continue  # verifica se a coluna é valida
                         if game.winning_move(board, turn):
                             game_over = True
                             break
@@ -61,33 +58,60 @@ class Interface:
                 # jogada da IA:
                 if turn != 1 and game_mode != 1:
                     pygame.time.wait(15)
-                    game_over = game.ai_move(bd, self, game_mode, board,
+                    game_over = game.ai_move(brd, self, game_mode, board,
                                              turn)  # recebe jogada da IA e retorna se o jogo acabou,
                     if game_over: break  # seja por vitória ou por empate
                     turn = next(turns)
 
             if game.is_game_tied(board):
-                self.show_draw(myfont)
+                self.show_draw(font)
                 break
 
         if game.winning_move(board, turn):
-            self.show_winner(myfont, turn)
+            self.show_winner(font, turn)
 
         # else:
-        #     self.show_draw(myfont)
+        #     self.show_draw(font)
 
         pygame.time.wait(10000)
 
-    def draw_options_board(self):
-        """Draw the option board: player x player and single player"""
+    def draw_menu(self):
+        """Use an alternating color to draw it in the SuperMario style, and for the game options board"""
         self.screen.fill(s.BACKGROUND_COLOR)
-        font = pygame.font.Font('fonts/SuperMario256.ttf', 60)
-        text_surface = font.render("Connect 4", True, s.BLUE)
-        text_rect = text_surface.get_rect()
-        text_rect.center = (560, 230)
-        self.screen.blit(text_surface, text_rect)
-        self.draw_button(self.height / 2, 350, 300, 50, "Player x Player")
-        self.draw_button(self.height / 2, 450, 300, 50, "Single Player")  # Player x IA
+        font = pygame.font.Font('fonts/SuperMario256.ttf', 80)
+
+        colors = [s.RED, s.YELLOW, s.BLUE, s.GREEN]
+        pos = (560 - font.size("Connect 4")[0] // 2, 230 - font.get_height() // 2)
+
+        self.render_alternating_colors_text("Connect 4", font, colors, pos)
+
+        self.draw_button(self.height / 2, 350, 300, 50, "Single Player")
+        self.draw_button(self.height / 2, 450, 300, 50, "Multiplayer")
+        self.draw_button(self.height / 2, 550, 300, 50, "PC x PC")
+
+
+
+    def render_alternating_colors_text(self, text: str, font, colors, pos):
+        x, y = pos
+        outline_color = s.BLACK
+        outline_range = range(-3,4)
+
+        for i, char in enumerate(text):
+            color = colors[i % len(colors)]
+
+            for ox in outline_range:
+                for oy in outline_range:
+                    if ox == 0 and oy == 0:
+                        continue  # Skip center
+
+                    outline_surface = font.render(char, True, outline_color)
+                    self.screen.blit(outline_surface, (x + ox, y + oy))
+
+
+            letter_surface = font.render(char, True, color)
+            self.screen.blit(letter_surface, (x, y))
+            x += letter_surface.get_width()  # Move x for next character
+        pygame.display.update()
 
     def choose_option(self) -> int:
         while True:
@@ -98,12 +122,15 @@ class Interface:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     if (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 350 <= mouse_y <= 400:
+                        print("Player vs AI selected")
+                        self.draw_difficulties()
+                        game_mode = 2
+                    elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 450 <= mouse_y <= 500:
                         print("Player vs Player selected")
                         game_mode = 1
-                    elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 450 <= mouse_y <= 500:
-                        print("Player vs AI selected")
-                        self.draw_algorithms()
-                        game_mode = 2
+                    elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 550 <= mouse_y <= 600:
+                        print("AI vs AI selected")
+                        game_mode = 3
 
             pygame.display.flip()
 
@@ -111,43 +138,46 @@ class Interface:
                 return game_mode
 
             if game_mode == 2:
-                game_mode = self.choose_ai_option()
+                game_mode = self.choose_ai_difficulty()
                 return game_mode
 
-    def draw_algorithms(self):
-        self.screen.fill(s.BACKGROUND_COLOR)
-        self.draw_button(self.height / 2, 250, 300, 50, "facil")  # A*
-        self.draw_button(self.height / 2, 350, 300, 50, "medio")  # A* adversarial
-        self.draw_button(self.height / 2, 450, 300, 50, "dificil")  # Alpha Beta
-        self.draw_button(self.height / 2, 550, 300, 50, "desafio")  # MCTS
+            if game_mode == 3:
+                self.draw_difficulties()
+                game_mode = self.choose_ai_difficulty()
+                return game_mode
 
-    def choose_ai_option(self) -> int:
-        """Draw the AI option board for A*, MCTS, Alpha Beta or MCTS"""
+    def draw_difficulties(self):
+        self.screen.fill(s.BACKGROUND_COLOR)
+        self.draw_button(self.height / 2, 250, 300, 50, "Easy")  # A*
+        self.draw_button(self.height / 2, 350, 300, 50, "Medium")  # A* adversarial
+        self.draw_button(self.height / 2, 450, 300, 50, "Hard")  # Alpha Beta
+        self.draw_button(self.height / 2, 550, 300, 50, "Challenge")  # MCTS
+
+    def choose_ai_difficulty(self):
+        game_mode = 0
         while True:
-            game_mode = 0
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    quit()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
+                current_event = event.type
+                if current_event == pygame.QUIT: quit()
+                elif current_event == pygame.MOUSEBUTTONDOWN:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     if (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 250 <= mouse_y <= 300:
-                        print("A*")
                         game_mode = 2
+                        print("A*")
                     elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 350 <= mouse_y <= 400:
-                        print("A* Adversarial")
                         game_mode = 3
+                        print("A* Adversarial")
                     elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 450 <= mouse_y <= 500:
-                        print("Alpha Beta")
                         game_mode = 4
+                        print("Alpha Beta")
                     elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 550 <= mouse_y <= 600:
-                        print("MCTS")
                         game_mode = 5
-
+                        print("MCTS")
                 pygame.display.flip()
                 if game_mode != 0:
                     return game_mode
 
-    def draw_board(self) -> None:
+    def draw_board(self):
         """Draw pygame board display"""
         self.screen.fill(s.BACKGROUND_COLOR)
 
@@ -167,12 +197,12 @@ class Interface:
                 pygame.draw.circle(self.screen, s.BACKGROUND_COLOR, center_of_circle, self.rad)
         pygame.display.update()
 
-    def draw_new_piece(self, row: int, col: int, piece: int) -> None:
+    def draw_new_piece(self, row: int, col: int, piece: int):
         center_of_circle = (int(col * self.pixels + self.pixels / 2),
                             self.height - int(row * self.pixels + self.pixels / 2))
         pygame.draw.circle(self.screen, s.PIECES_COLORS[piece], center_of_circle, self.rad)
 
-    def draw_button(self, x: int, y: int, width: int, height: int, text: str) -> None:
+    def draw_button(self, x: int, y: int, width: int, height: int, text: str):
         """Draw the option buttons"""
         pygame.draw.rect(self.screen, s.GRAY, (x, y, width, height), 0, 30)
         font = pygame.font.Font('fonts/SuperMario256.ttf', 25)
@@ -181,18 +211,18 @@ class Interface:
         text_rect.center = (x + width / 2, y + height / 2)
         self.screen.blit(text_surface, text_rect)
 
-    def show_winner(self, myfont: any, turn: int) -> None:
+    def show_winner(self, font: any, turn: int):
         """Print the winner"""
-        label = myfont.render("Player " + str(turn) + " wins!", turn, s.PIECES_COLORS[turn])
+        label = font.render("Player " + str(turn) + " wins!", turn, s.PIECES_COLORS[turn])
         self.screen.blit(label, (350, 15))
         pygame.display.update()
 
-    def show_draw(self, myfont: any) -> None:
+    def show_draw(self, font: any):
         """Print draw game message"""
-        label = myfont.render("Game tied!", True, s.BOARD_COLOR)
+        label = font.render("Game tied!", True, s.BOARD_COLOR)
         self.screen.blit(label, (400, 15))
         pygame.display.update()
 
-    def quit() -> None:
+    def quit(self):
         pygame.quit()
         sys.exit()

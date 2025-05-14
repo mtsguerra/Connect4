@@ -5,7 +5,7 @@ from game_structure.interface import Interface
 def main() -> None:
     board = Board()
     interface = Interface()
-    interface.start_engine(board)
+    interface.starting_game(board)
 
 
 if __name__ == "__main__":
