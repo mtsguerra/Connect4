@@ -1,9 +1,9 @@
-import game_structure.style as s
+import style as s
 import numpy as np
 import math
 import pygame
 from board import Board
-from ai_alg import a_star as g, alpha_beta as a, mcts as m
+import a_star as g, alpha_beta as a, mcts as m
 
 
 def human_move(bd: Board, interface: any, board: np.ndarray, turn: int, event: any) -> bool:
@@ -42,9 +42,9 @@ def get_ai_column(board: Board, game_mode: int) -> int:
     """Select the chose ai algorithm to make a move"""
     chosen_column = 0
     if game_mode == 2:
-        chosen_column = g.a_star(board, s.AI_PIECE, s.HUMAN_PIECE)
+        chosen_column = g.a_star(board, s.SECOND_PLAYER_PIECE, s.FIRST_PLAYER_PIECE)
     elif game_mode == 3:
-        chosen_column = g.a_star_adversarial(board, s.AI_PIECE, s.HUMAN_PIECE)
+        chosen_column = g.a_star_adversarial(board, s.SECOND_PLAYER_PIECE, s.FIRST_PLAYER_PIECE)
     elif game_mode == 4:
         chosen_column = a.alpha_beta(board)
     elif game_mode == 5:
@@ -75,19 +75,19 @@ def make_move(bd: Board, interface: any, board: np.ndarray, turn: int, move: int
 def get_next_open_row(board: np.ndarray, col: int) -> int:
     """Given a column, return the first row avaiable to set a piece"""
     for row in range(s.ROWS):
-        if board[row][col] == 0:
+        if board[row, col] == 0:
             return row
     return -1
 
 
 def drop_piece(board: np.ndarray, row: int, col: int, piece: int) -> None:
     """Insert a piece into board on correct location"""
-    board[row][col] = piece
+    board[row, col] = piece
 
 
 def is_game_tied(board: np.ndarray) -> bool:
     """Assert if the game is tied"""
-    if winning_move(board, s.AI_PIECE) or winning_move(board, s.HUMAN_PIECE): return False
+    if winning_move(board, s.SECOND_PLAYER_PIECE) or winning_move(board, s.FIRST_PLAYER_PIECE): return False
     for i in range(len(board)):
         for j in range(len(board[0])):
             if board[i][j] == 0: return False
@@ -102,40 +102,21 @@ def is_valid(board: np.ndarray, col: int) -> bool:
 
 
 def winning_move(board: np.ndarray, piece: int) -> bool:
-    """Return if the selected move will win the game"""
-
-    def check_horizontal(board: np.ndarray, piece: int) -> bool:
-        """Check winning condition on horizontal lines"""
-        for col in range(s.COLUMNS - 3):
-            for row in range(s.ROWS):
-                if board[row][col] == piece and board[row][col + 1] == piece and board[row][col + 2] == piece and \
-                        board[row][col + 3] == piece:
+    rows, cols = board.shape
+    # Verifica todas as posições possíveis para uma sequência de 4 peças do jogador
+    for row in range(rows):
+        for col in range(cols):
+            if board[row, col] == piece:
+                # Checa horizontalmente
+                if col + 3 < cols and all(board[row, col + i] == piece for i in range(4)):
                     return True
-
-    def check_vertical(board: np.ndarray, piece: int) -> bool:
-        """Check winning condition on vertical lines"""
-        for col in range(s.COLUMNS):
-            for row in range(s.ROWS - 3):
-                if board[row][col] == piece and board[row + 1][col] == piece and board[row + 2][col] == piece and \
-                        board[row + 3][col] == piece:
+                # Checa verticalmente
+                if row + 3 < rows and all(board[row + i, col] == piece for i in range(4)):
                     return True
-
-    def check_ascending_diagonal(board: np.ndarray, piece: int) -> bool:
-        """Check winning condition on ascending diagonal lines"""
-        for col in range(s.COLUMNS - 3):
-            for row in range(s.ROWS - 3):
-                if board[row][col] == piece and board[row + 1][col + 1] == piece and board[row + 2][
-                    col + 2] == piece and board[row + 3][col + 3] == piece:
+                # Checa diagonal ascendente (direita e para cima)
+                if row - 3 >= 0 and col + 3 < cols and all(board[row - i, col + i] == piece for i in range(4)):
                     return True
-
-    def check_descending_diagonal(board: np.ndarray, piece: int) -> bool:
-        """Check winning condition on descending diagonal lines"""
-        for col in range(s.COLUMNS - 3):
-            for row in range(3, s.ROWS):
-                if board[row][col] == piece and board[row - 1][col + 1] == piece and board[row - 2][
-                    col + 2] == piece and board[row - 3][col + 3] == piece:
+                # Checa diagonal descendente (direita e para baixo)
+                if row + 3 < rows and col + 3 < cols and all(board[row + i, col + i] == piece for i in range(4)):
                     return True
-
-    return check_vertical(board, piece) or check_horizontal(board, piece) or check_ascending_diagonal(board,
-                                                                                                      piece) or check_descending_diagonal(
-        board, piece)
+    return False
