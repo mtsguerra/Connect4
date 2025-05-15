@@ -1,12 +1,12 @@
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import style as s
 
 @dataclass
 class Board:
     rows: int = s.ROWS
     columns: int = s.COLUMNS
-    board: np.ndarray = np.zeros((rows, columns))
+    board: np.ndarray = field(default_factory=lambda: np.zeros((s.ROWS, s.COLUMNS)))
 
     def get_board(self):
         return self.board
