@@ -155,17 +155,18 @@ class Interface:
         self.draw_button(left_x, 350, 400, 50, "Medium x Medium")  # Alpha Beta
         self.draw_button(left_x, 450, 400, 50, "Medium x Challenge")  # MCTS
         self.draw_button(left_x, 550, 400, 50, "Hard x Challenge")  # MCTS
-        self.draw_button(left_x, 650, 400, 50, "Challenge x Challenge")  # MCTS
 
         self.draw_button(right_x, 150, 400, 50, "Easy x Medium")  # A*
         self.draw_button(right_x, 250, 400, 50, "Easy x Challenge")  # A* adversarial
         self.draw_button(right_x, 350, 400, 50, "Medium x Hard")  # Alpha Beta
         self.draw_button(right_x, 450, 400, 50, "Hard x Hard")  # MCTS
-        self.draw_button(right_x, 550, 400, 50, "Challenge")  # MCTS
-
+        self.draw_button(right_x, 550, 400, 50, "Challenge x Challenge")  # MCTS
 
     def choose_AI_combination(self):
+        left_x = self.width / 4 - 200
+        right_x = self.width * 3 / 4 - 200
         game_mode = 0
+
         while True:
             for event in pygame.event.get():
                 current_event = event.type
@@ -173,21 +174,41 @@ class Interface:
                     quit()
                 elif current_event == pygame.MOUSEBUTTONDOWN:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    if (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 250 <= mouse_y <= 300:
-                        game_mode = 2
-                        print("A*")
-                    elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 350 <= mouse_y <= 400:
-                        game_mode = 3
-                        print("A* Adversarial")
-                    elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 450 <= mouse_y <= 500:
-                        game_mode = 4
-                        print("Alpha Beta")
-                    elif (self.width / 2 - 150) <= mouse_x <= (self.width / 2 + 150) and 550 <= mouse_y <= 600:
-                        game_mode = 5
-                        print("MCTS")
-                pygame.display.flip()
-                if game_mode != 0:
-                    return game_mode
+                    if left_x <= mouse_x <= left_x + 400:
+                        if 150 <= mouse_y <= 200:
+                            game_mode = 1
+                            print("Easy x Easy")
+                        elif 250 <= mouse_y <= 300:
+                            game_mode = 2
+                            print("Easy x Hard")
+                        elif 350 <= mouse_y <= 400:
+                            game_mode = 3
+                            print("Medium x Medium")
+                        elif 450 <= mouse_y <= 500:
+                            game_mode = 4
+                            print("Medium x Challenge")
+                        elif 550 <= mouse_y <= 600:
+                            game_mode = 5
+                            print("Hard x Challenge")
+                    elif right_x <= mouse_x <= right_x + 400:
+                        if 150 <= mouse_y <= 200:
+                            game_mode = 6
+                            print("Easy x Medium")
+                        elif 250 <= mouse_y <= 300:
+                            game_mode = 7
+                            print("Easy x Challenge")
+                        elif 350 <= mouse_y <= 400:
+                            game_mode = 8
+                            print("Medium x Hard")
+                        elif 450 <= mouse_y <= 500:
+                            game_mode = 9
+                            print("Hard x Hard")
+                        elif 550 <= mouse_y <= 600:
+                            game_mode = 10
+                            print("Challenge x Challenge")
+            pygame.display.flip()
+            if game_mode != 0:
+                return game_mode
 
     def draw_difficulties(self):
         self.screen.fill(s.BACKGROUND_COLOR)
@@ -256,8 +277,15 @@ class Interface:
 
     def show_winner(self, font: any, turn: int):
         """Print the winner"""
-        label = font.render("Player " + str(turn) + " wins!", turn, s.PIECES_COLORS[turn])
-        self.screen.blit(label, (350, 15))
+        font = pygame.font.Font('fonts/SuperMario256.ttf', 25)
+
+        colors = [s.RED, s.YELLOW, s.BLUE, s.GREEN]
+        winner = ("Player " + str(turn) + " wins!")
+        pos = (560 - font.size(winner)[0] // 2, 20)
+
+
+        self.render_alternating_colors_text(winner, font, colors, pos)
+
         pygame.display.update()
 
     def show_draw(self, font: any):
