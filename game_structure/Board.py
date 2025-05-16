@@ -1,6 +1,6 @@
 import numpy as np
 from dataclasses import dataclass, field
-import style as s
+from game_structure import style as s
 
 @dataclass
 class Board:
