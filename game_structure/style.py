@@ -9,7 +9,7 @@ WHITE = (255, 255, 255)  # White
 
 
 BOARD_COLOR = BLUE  # Blue
-BACKGROUND_COLOR = (137, 207, 240)  # White
+BACKGROUND_COLOR = (155, 225, 255)  # Baby blue
 PLAYER_COLOR = (245, 0, 0)  # Red
 SECOND_PLAYER_COLOR = (255, 215, 0)  # Yellow
 
