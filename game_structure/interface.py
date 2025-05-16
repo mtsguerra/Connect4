@@ -278,7 +278,7 @@ class Interface:
 
     def show_winner(self, font: any, turn: int):
         """Print the winner"""
-        font = pygame.font.Font('Connect4-main/fonts/SuperMario256.ttf', 25)
+        font = pygame.font.Font('Connect4-main/fonts/SuperMario256.ttf', 50)
 
         colors = [s.RED, s.YELLOW, s.BLUE, s.GREEN]
         winner = ("Player " + str(turn) + " wins!")
@@ -289,7 +289,7 @@ class Interface:
 
     def show_draw(self, font: any):
         """Print draw game message"""
-        font = pygame.font.Font('Connect4-main/fonts/SuperMario256.ttf', 25)
+        font = pygame.font.Font('Connect4-main/fonts/SuperMario256.ttf', 50)
         colors = [s.RED, s.YELLOW, s.BLUE, s.GREEN]
         draw_message = "Game tied!"
         pos = (560 - font.size(draw_message)[0] // 2, 20)
