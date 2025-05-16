@@ -26,7 +26,7 @@ class Node:
             self.board) == -1): return  # se não existirem jogadas possíveis ou se os filhos já tiverem sido adicionados
         for col in game.available_moves(self.board):  # itera sobre todas as colunas possíveis a serem jogadas
             if self.current_player == c.FIRST_PLAYER_PIECE:
-                copy_board = game.simulate_move(self.board, c.SECOND_PLAYER_COLOR, col)
+                copy_board = game.simulate_move(self.board, c.SECOND_PLAYER_PIECE, col)
             else:
                 copy_board = game.simulate_move(self.board, c.FIRST_PLAYER_PIECE,
                                                 col)  # cria uma cópia do tabuleiro atual e adiciona a nova jogada a ele
@@ -60,7 +60,7 @@ class MCTS:
         """simulate 6 times through each children of the root, before running mcts"""
         self.root.add_children()
         for child in self.root.children:  # itera sobre todos os filhos da root
-            if game.winning_move(child[0].board, c.SECOND_PLAYER_COLOR): return child[
+            if game.winning_move(child[0].board, c.SECOND_PLAYER_PIECE): return child[
                 1]  # se alguma jogada já for vitoriosa, retorna
             for _ in range(6):  # simula 6 vezes sobre cada filho
                 result = self.rollout(child[0])
@@ -118,9 +118,9 @@ class MCTS:
     def rollout(self, node: Node) -> int:
         """simulate a entire play until someone wins"""
         board = node.board.copy()  # cria uma cópia do tabuleiro do nó para ser alterado
-        players = itertools.cycle([c.SECOND_PLAYER_COLOR, c.FIRST_PLAYER_PIECE])  # cria uma iteração sobre os jogadores de cada nível
+        players = itertools.cycle([c.SECOND_PLAYER_PIECE, c.FIRST_PLAYER_PIECE])  # cria uma iteração sobre os jogadores de cada nível
         current_player = next(players)
-        while not (game.winning_move(board, c.SECOND_PLAYER_COLOR) or game.winning_move(board,
+        while not (game.winning_move(board, c.SECOND_PLAYER_PIECE) or game.winning_move(board,
                                                                              c.FIRST_PLAYER_PIECE)):  # continua a simulação até o jogo simulado acabar
             if game.is_game_tied(board): return 0
             current_player = next(players)
@@ -152,7 +152,7 @@ class MCTS:
 
 def mcts(board: np.ndarray) -> int:
     """Should return the best column option, chose by mcts"""
-    root = Node(board=board, last_player=c.SECOND_PLAYER_COLOR)
+    root = Node(board=board, last_player=c.SECOND_PLAYER_PIECE)
     mcts = MCTS(root)
     column = mcts.start(3)
     print(column + 1)
