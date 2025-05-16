@@ -1,4 +1,4 @@
-from game_structure.board import Board
+from game_structure.Board import Board
 from game_structure.interface import Interface
 
 
