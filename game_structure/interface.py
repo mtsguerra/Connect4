@@ -1,11 +1,11 @@
 import pygame
 import itertools
 import sys
-import style as s
-import board
-import game_engine as game
+from game_structure import style as s
+from game_structure import Board
+from game_structure import game_engine as game
 from dataclasses import dataclass
-
+from game_structure.ai_game import run_ai_vs_ai_game
 
 @dataclass
 class Interface:
@@ -19,7 +19,7 @@ class Interface:
     screen: any = pygame.display.set_mode(size)
     pygame.display.set_caption("Connect4")
 
-    def starting_game(self, brd: board):
+    def starting_game(self, brd: Board):
         """Set up the conditions to the game, as choose game_mode and draw the pygame display"""
         pygame.init()
         self.draw_menu()
@@ -27,12 +27,16 @@ class Interface:
         brd.print_board()
         self.draw_board()
         pygame.display.update()
-        self.play(brd, game_mode)
+        
+        if game_mode >= 4 and game_mode <= 13:  # AI vs AI modes
+            run_ai_vs_ai_game(self, brd, game_mode)
+        else:
+            self.play(brd, game_mode)
 
-    def play(self, brd: board, game_mode: int):
+    def play(self, brd: Board, game_mode: int):
         board = brd.get_board()
         game_over = False
-        font = pygame.font.SysFont('fonts/SuperMario256.ttf', 50)
+        font = pygame.font.SysFont('Connect4-main/fonts/SuperMario256.ttf', 50)
         turns = itertools.cycle([1, 2])
         turn = next(turns)
 
@@ -49,7 +53,7 @@ class Interface:
                 # jogada do humano:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if turn == 1 or (turn == 2 and game_mode == 1):  # recebe a jogada do humano
-                        if not game.human_move(brd, self, board, turn, event): continue  # verifica se a coluna é valida
+                        if not game.first_player_move(brd, self, board, turn, event): continue  # verifica se a coluna é valida
                         if game.winning_move(board, turn):
                             game_over = True
                             break
@@ -70,15 +74,12 @@ class Interface:
         if game.winning_move(board, turn):
             self.show_winner(font, turn)
 
-        # else:
-        #     self.show_draw(font)
-
         pygame.time.wait(10000)
 
     def draw_menu(self):
         """Use an alternating color to draw it in the SuperMario style, and for the game options board"""
         self.screen.fill(s.BACKGROUND_COLOR)
-        font = pygame.font.Font('fonts/SuperMario256.ttf', 80)
+        font = pygame.font.Font('Connect4-main/fonts/SuperMario256.ttf', 80)
 
         colors = [s.RED, s.YELLOW, s.BLUE, s.GREEN]
         pos = (560 - font.size("Connect 4")[0] // 2, 230 - font.get_height() // 2)
@@ -176,35 +177,35 @@ class Interface:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     if left_x <= mouse_x <= left_x + 400:
                         if 150 <= mouse_y <= 200:
-                            game_mode = 1
+                            game_mode = 4
                             print("Easy x Easy")
                         elif 250 <= mouse_y <= 300:
-                            game_mode = 2
+                            game_mode = 5
                             print("Easy x Hard")
                         elif 350 <= mouse_y <= 400:
-                            game_mode = 3
+                            game_mode = 6
                             print("Medium x Medium")
                         elif 450 <= mouse_y <= 500:
-                            game_mode = 4
+                            game_mode = 7
                             print("Medium x Challenge")
                         elif 550 <= mouse_y <= 600:
-                            game_mode = 5
+                            game_mode = 8
                             print("Hard x Challenge")
                     elif right_x <= mouse_x <= right_x + 400:
                         if 150 <= mouse_y <= 200:
-                            game_mode = 6
+                            game_mode = 9
                             print("Easy x Medium")
                         elif 250 <= mouse_y <= 300:
-                            game_mode = 7
+                            game_mode = 10
                             print("Easy x Challenge")
                         elif 350 <= mouse_y <= 400:
-                            game_mode = 8
+                            game_mode = 11
                             print("Medium x Hard")
                         elif 450 <= mouse_y <= 500:
-                            game_mode = 9
+                            game_mode = 12
                             print("Hard x Hard")
                         elif 550 <= mouse_y <= 600:
-                            game_mode = 10
+                            game_mode = 13
                             print("Challenge x Challenge")
             pygame.display.flip()
             if game_mode != 0:
@@ -269,7 +270,7 @@ class Interface:
     def draw_button(self, x: int, y: int, width: int, height: int, text: str):
         """Draw the option buttons"""
         pygame.draw.rect(self.screen, s.GRAY, (x, y, width, height), 0, 30)
-        font = pygame.font.Font('fonts/SuperMario256.ttf', 25)
+        font = pygame.font.Font('Connect4-main/fonts/SuperMario256.ttf', 25)
         text_surface = font.render(text, True, s.BLACK)
         text_rect = text_surface.get_rect()
         text_rect.center = (x + width / 2, y + height / 2)
@@ -277,21 +278,23 @@ class Interface:
 
     def show_winner(self, font: any, turn: int):
         """Print the winner"""
-        font = pygame.font.Font('fonts/SuperMario256.ttf', 25)
+        font = pygame.font.Font('Connect4-main/fonts/SuperMario256.ttf', 25)
 
         colors = [s.RED, s.YELLOW, s.BLUE, s.GREEN]
         winner = ("Player " + str(turn) + " wins!")
         pos = (560 - font.size(winner)[0] // 2, 20)
 
-
         self.render_alternating_colors_text(winner, font, colors, pos)
-
         pygame.display.update()
 
     def show_draw(self, font: any):
         """Print draw game message"""
-        label = font.render("Game tied!", True, s.BOARD_COLOR)
-        self.screen.blit(label, (400, 15))
+        font = pygame.font.Font('Connect4-main/fonts/SuperMario256.ttf', 25)
+        colors = [s.RED, s.YELLOW, s.BLUE, s.GREEN]
+        draw_message = "Game tied!"
+        pos = (560 - font.size(draw_message)[0] // 2, 20)
+        
+        self.render_alternating_colors_text(draw_message, font, colors, pos)
         pygame.display.update()
 
     def quit(self):
