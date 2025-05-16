@@ -76,16 +76,16 @@ def get_ai_types(game_mode):
     Returns the AI types for both players based on the game mode
     """
     ai_mapping = {
-        4: ["Easy", "Easy"],           # Easy x Easy
-        5: ["Easy", "Hard"],           # Easy x Hard
-        6: ["Medium", "Medium"],       # Medium x Medium
-        7: ["Medium", "Challenge"],    # Medium x Challenge
-        8: ["Hard", "Challenge"],      # Hard x Challenge
-        9: ["Easy", "Medium"],         # Easy x Medium
-        10: ["Easy", "Challenge"],     # Easy x Challenge
-        11: ["Medium", "Hard"],        # Medium x Hard
-        12: ["Hard", "Hard"],          # Hard x Hard
-        13: ["Challenge", "Challenge"] # Challenge x Challenge
+        6: ["Easy", "Easy"],           # Easy x Easy
+        7: ["Easy", "Hard"],           # Easy x Hard
+        8: ["Medium", "Medium"],       # Medium x Medium
+        9: ["Medium", "Challenge"],    # Medium x Challenge
+        10: ["Hard", "Challenge"],      # Hard x Challenge
+        11: ["Easy", "Medium"],         # Easy x Medium
+        12: ["Easy", "Challenge"],     # Easy x Challenge
+        13: ["Medium", "Hard"],        # Medium x Hard
+        14: ["Hard", "Hard"],          # Hard x Hard
+        15: ["Challenge", "Challenge"] # Challenge x Challenge
     }
     
     return ai_mapping.get(game_mode, ["Easy", "Easy"])
@@ -104,10 +104,10 @@ def get_ai_column_for_type(board, player, ai_type):
         return b.adversarial_lookahead(board, player, opponent)
     elif ai_type == "Hard":
         # Use Alpha-Beta pruning
-        return a.alpha_beta(board, player_piece=player, opponent_piece=opponent)
+        return a.alpha_beta(board)
     elif ai_type == "Challenge":
         # Use Monte Carlo Tree Search
-        return m.mcts(board, player_piece=player, opponent_piece=opponent)
+        return m.mcts(board)
     else:
         # Default to basic heuristic
         return b.evaluate_best_move(board, player, opponent)
