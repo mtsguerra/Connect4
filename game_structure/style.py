@@ -28,5 +28,3 @@ RADIUS_PIECE = 45  # Radius of the piece
 # Constants for the screen
 WIDTH = (4 + COLUMNS) * SQUARE_SIZE  # width of the screen = board + 1 and a half empty column on the left and right
 HEIGHT = (2 + ROWS) * SQUARE_SIZE  # height of the screen = board + 1 empty row on the top and bottom
-
-
