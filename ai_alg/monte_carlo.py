@@ -2,6 +2,7 @@ import time, math, numpy as np, random, itertools
 from game_structure import style as c
 from game_structure import game_engine as game
 from math import sqrt, log
+from ai_alg import heuristic as h
 
 
 class Node:
@@ -43,9 +44,8 @@ class Node:
         """calculate the Upper Confidence Bound of the node"""
         if self.visits == 0: return float('inf')
         exploitation = self.wins / self.visits
-        exploration = sqrt(2) * sqrt(2 * log(self.parent.visits / self.visits, math.e)) if self.parent else 0
+        exploration = sqrt(2) * sqrt(log(self.parent.visits) / self.visits)
         return exploitation + exploration
-
     def score(self) -> float:
         """calculate the score of the node"""
         if self.visits == 0: return 0
@@ -116,21 +116,28 @@ class MCTS:
         return node.select_children()
 
     def rollout(self, node: Node) -> int:
-        """simulate a entire play until someone wins"""
-        board = node.board.copy()  # cria uma cópia do tabuleiro do nó para ser alterado
-        players = itertools.cycle([c.SECOND_PLAYER_PIECE, c.FIRST_PLAYER_PIECE])  # cria uma iteração sobre os jogadores de cada nível
+        board = node.board.copy()
+        max_depth = 6
+        players = itertools.cycle([c.SECOND_PLAYER_PIECE, c.FIRST_PLAYER_PIECE])
         current_player = next(players)
-        while not (game.winning_move(board, c.SECOND_PLAYER_PIECE) or game.winning_move(board,
-                                                                             c.FIRST_PLAYER_PIECE)):  # continua a simulação até o jogo simulado acabar
-            if game.is_game_tied(board): return 0
-            current_player = next(players)
-            values = game.available_moves(board)  # seleciona as colunas disponpiveis a receberem jogadas
-            if values == -1:  # se não houver possibilidades de jogadas, retorna que não houve ganhador (empate)
-                current_player = 0
+
+        for _ in range(max_depth):
+            if game.winning_move(board, c.SECOND_PLAYER_PIECE) or game.winning_move(board, c.FIRST_PLAYER_PIECE):
                 break
-            col = random.choice(values)  # escolhe aleatoriamente uma das possibilidades de jogada
-            board = game.simulate_move(board, current_player, col)  # simula a jogada escolhida
-        return current_player  # retorna o jogador da jogada vencedora (ou seja, quem ganhou a simulação)
+            if game.is_game_tied(board):
+                return 0
+            current_player = next(players)
+            moves = game.available_moves(board)
+            if moves == -1:
+                return 0
+            # Use heuristic to choose best move
+            best_move = max(
+                moves,
+                key=lambda col: h.calculate_board_score(game.simulate_move(board, current_player, col), c.SECOND_PLAYER_PIECE, c.FIRST_PLAYER_PIECE)
+            )
+            board = game.simulate_move(board, current_player, best_move)
+
+        return current_player
 
     def best_move(self) -> int:
         """select the best column to be played based on their scores"""
