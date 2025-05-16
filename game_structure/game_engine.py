@@ -48,9 +48,9 @@ def get_ai_column(board: Board, game_mode: int, player: int = 2) -> int:
     elif game_mode == 3:
         chosen_column = b.adversarial_lookahead(board, player, opponent)
     elif game_mode == 4:
-        chosen_column = a.alpha_beta(board, player_piece=player, opponent_piece=opponent)
+        chosen_column = a.alpha_beta(board)
     elif game_mode == 5:
-        chosen_column = m.mcts(board, player_piece=player, opponent_piece=opponent)
+        chosen_column = m.mcts(board)
     return chosen_column
 
 
