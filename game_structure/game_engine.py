@@ -1,12 +1,12 @@
-import style as s
+from game_structure import style as s
 import numpy as np
 import math
 import pygame
-from board import Board
-import a_star as g, alpha_beta as a, mcts as m
+from game_structure import Board
+from ai_alg import basic_heuristic as b, alpha_beta as a, monte_carlo as m
 
 
-def human_move(bd: Board, interface: any, board: np.ndarray, turn: int, event: any) -> bool:
+def first_player_move(bd: Board, interface: any, board: np.ndarray, turn: int, event: any) -> bool:
     """Set the column of human move"""
     col = get_human_column(interface, event)
     if not is_valid(board, col): return False
@@ -33,22 +33,24 @@ def available_moves(board: np.ndarray) -> list | int:
 
 def ai_move(bd: Board, interface: any, game_mode: int, board: np.ndarray, turn: int) -> int:
     """Set the column of the AI move"""
-    ai_column = get_ai_column(board, game_mode)
+    ai_column = get_ai_column(board, game_mode, turn)
     game_over = make_move(bd, interface, board, turn, ai_column)
     return game_over
 
 
-def get_ai_column(board: Board, game_mode: int) -> int:
-    """Select the chose ai algorithm to make a move"""
+def get_ai_column(board: Board, game_mode: int, player: int = 2) -> int:
+    """Select the chosen AI algorithm to make a move"""
+    opponent = 1 if player == 2 else 2
+    
     chosen_column = 0
     if game_mode == 2:
-        chosen_column = g.a_star(board, s.SECOND_PLAYER_PIECE, s.FIRST_PLAYER_PIECE)
+        chosen_column = b.evaluate_best_move(board, player, opponent)
     elif game_mode == 3:
-        chosen_column = g.a_star_adversarial(board, s.SECOND_PLAYER_PIECE, s.FIRST_PLAYER_PIECE)
+        chosen_column = b.adversarial_lookahead(board, player, opponent)
     elif game_mode == 4:
-        chosen_column = a.alpha_beta(board)
+        chosen_column = a.alpha_beta(board, player_piece=player, opponent_piece=opponent)
     elif game_mode == 5:
-        chosen_column = m.mcts(board)
+        chosen_column = m.mcts(board, player_piece=player, opponent_piece=opponent)
     return chosen_column
 
 
@@ -106,7 +108,7 @@ def winning_move(board: np.ndarray, piece: int) -> bool:
     # Verifica todas as posições possíveis para uma sequência de 4 peças do jogador
     for row in range(rows):
         for col in range(cols):
-            if board[row, col] == piece:
+            if int(board[row, col]) == piece:
                 # Checa horizontalmente
                 if col + 3 < cols and all(board[row, col + i] == piece for i in range(4)):
                     return True
