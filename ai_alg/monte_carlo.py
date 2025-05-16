@@ -1,5 +1,5 @@
 import time, math, numpy as np, random, itertools
-from game_structure import style as c
+from game_structure import style as s
 from game_structure import game_engine as game
 from math import sqrt, log
 from ai_alg import heuristic as h
@@ -38,10 +38,10 @@ class Node:
         # Generate a child node for each possible move
         for col in game.available_moves(self.board):
             # Create a copy of the board with the new move applied
-            if self.current_player == c.FIRST_PLAYER_PIECE:
-                copy_board = game.simulate_move(self.board, c.SECOND_PLAYER_PIECE, col)
+            if self.current_player == s.FIRST_PLAYER_PIECE:
+                copy_board = game.simulate_move(self.board, s.SECOND_PLAYER_PIECE, col)
             else:
-                copy_board = game.simulate_move(self.board, c.FIRST_PLAYER_PIECE, col)
+                copy_board = game.simulate_move(self.board, s.FIRST_PLAYER_PIECE, col)
                 
             # Add the new node and the column that generated it to the children list
             self.children.append((Node(board=copy_board, 
@@ -96,7 +96,7 @@ class monte_carlo:
         # Perform initial simulations on each child
         for child in self.root.children:
             # If we find an immediate winning move, return it
-            if game.winning_move(child[0].board, c.SECOND_PLAYER_PIECE):
+            if game.winning_move(child[0].board, s.SECOND_PLAYER_PIECE):
                 return child[1]
                 
             # Run 6 simulations for each child to get initial statistics
@@ -188,12 +188,12 @@ class monte_carlo:
         """
         board = node.board.copy()
         max_depth = 6  # Limit simulation depth for efficiency
-        players = itertools.cycle([c.SECOND_PLAYER_PIECE, c.FIRST_PLAYER_PIECE])
+        players = itertools.cycle([s.SECOND_PLAYER_PIECE, s.FIRST_PLAYER_PIECE])
         current_player = next(players)
 
         for _ in range(max_depth):
             # Check if game is already decided
-            if game.winning_move(board, c.SECOND_PLAYER_PIECE) or game.winning_move(board, c.FIRST_PLAYER_PIECE):
+            if game.winning_move(board, s.SECOND_PLAYER_PIECE) or game.winning_move(board, s.FIRST_PLAYER_PIECE):
                 break
             if game.is_game_tied(board):
                 return 0  # Tie game
@@ -209,8 +209,8 @@ class monte_carlo:
                 moves,
                 key=lambda col: h.calculate_board_score(
                     game.simulate_move(board, current_player, col), 
-                    c.SECOND_PLAYER_PIECE, 
-                    c.FIRST_PLAYER_PIECE
+                    s.SECOND_PLAYER_PIECE, 
+                    s.FIRST_PLAYER_PIECE
                 )
             )
             
@@ -253,7 +253,7 @@ def monte_carlo_ts(board: np.ndarray) -> int:
     Entry point function that runs Monte Carlo Tree Search
     Returns the best column (0-indexed) to play
     """
-    root = Node(board=board, last_player=c.SECOND_PLAYER_PIECE)
+    root = Node(board=board, last_player=s.SECOND_PLAYER_PIECE)
     mc = monte_carlo(root)
     column = mc.start(3)  # Run MCTS for 3 seconds
     print(column + 1)  # Print 1-indexed column for human readability
