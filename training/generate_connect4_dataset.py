@@ -120,15 +120,14 @@ def generate_dataset(
     print(f"Total time: {(time.time() - start_time)/60:.2f} minutes")
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="Generate Connect4 dataset using MCTS")
-    parser.add_argument("--games", type=int, default=100, help="Number of games to generate")
-    parser.add_argument("--time", type=float, default=1.0, help="Search time per move (seconds)")
-    parser.add_argument("--output", type=str, default="connect4_dataset.csv", help="Output filename")
-    args = parser.parse_args()
-    
+    # Run directly with hard-coded parameters
+    print("Starting dataset generation with predefined parameters...")
     generate_dataset(
-        n_games=args.games,
-        search_time=args.time,
-        out_file=args.output
+        n_games=300,       # Generate 300 games
+        search_time=1.0,   # 1 second per move
+        out_file="connect4_dataset.csv"
     )
+    
+    # Continue with the next step
+    print("\nDataset generation complete. Now you can train your decision tree model.")
+    print("Use: python training/decision_tree.py --dataset both")
