@@ -3,7 +3,7 @@ import numpy as np
 import math
 import pygame
 from game_structure import Board
-from ai_alg import basic_heuristic as b, alpha_beta as a, monte_carlo_ts as m
+from ai_alg import basic_heuristic as b, alpha_beta as a, monte_carlo as m
 
 
 def first_player_move(bd: Board, interface: any, board: np.ndarray, turn: int, event: any) -> bool:
@@ -50,7 +50,7 @@ def get_ai_column(board: Board, game_mode: int, player: int = 2) -> int:
     elif game_mode == 4:
         chosen_column = a.alpha_beta(board)
     elif game_mode == 5:
-        chosen_column = m.monte_carlo_ts(board)
+        chosen_column = m.mcts(board)
     return chosen_column
 
 
