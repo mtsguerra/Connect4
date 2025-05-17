@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from game_structure import style as s
 from game_structure import game_engine as game
-from ai_alg.monte_carlo_ts import Node, MonteCarlo
+from ai_alg.monte_carlo import Node, monte_carlo
 
 # Create data directory if it doesn't exist
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
@@ -47,7 +47,7 @@ def generate_game(params: Tuple[int, int]) -> List[List[int]]:
         
         # Get move from MCTS
         root = Node(board=board.copy(), last_player=s.SECOND_PLAYER_PIECE if turn == s.FIRST_PLAYER_PIECE else s.FIRST_PLAYER_PIECE)
-        mc = MonteCarlo(root)
+        mc = monte_carlo(root)
         move = mc.start(search_time)
         
         # Record state and chosen move
