@@ -3,7 +3,7 @@ import numpy as np
 from game_structure import Board
 from game_structure import style as s
 from game_structure import game_engine as game
-from ai_alg import basic_heuristic as b, alpha_beta as a, monte_carlo_ts as m, heuristic as h
+from ai_alg import basic_heuristic as b, alpha_beta as a, monte_carlo as m, heuristic as h
 import itertools
 import time
 
