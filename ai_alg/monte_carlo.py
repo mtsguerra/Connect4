@@ -248,7 +248,7 @@ class monte_carlo:
         return random.choice(columns)
 
 
-def monte_carlo_ts(board: np.ndarray) -> int:
+def mcts(board: np.ndarray) -> int:
     """
     Entry point function that runs Monte Carlo Tree Search
     Returns the best column (0-indexed) to play
