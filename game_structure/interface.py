@@ -213,10 +213,10 @@ class Interface:
 
     def draw_difficulties(self):
         self.screen.fill(s.BACKGROUND_COLOR)
-        self.draw_button(self.height / 2, 250, 300, 50, "Easy")  # A*
-        self.draw_button(self.height / 2, 350, 300, 50, "Medium")  # A* adversarial
-        self.draw_button(self.height / 2, 450, 300, 50, "Hard")  # Alpha Beta
-        self.draw_button(self.height / 2, 550, 300, 50, "Challenge")  # MCTS
+        self.draw_button(self.height / 2, 250, 300, 50, "Easy")       # A*
+        self.draw_button(self.height / 2, 350, 300, 50, "Medium")     # Monte Carlo (MCTS)
+        self.draw_button(self.height / 2, 450, 300, 50, "Hard")       # Alpha Beta
+        self.draw_button(self.height / 2, 550, 300, 50, "Challenge")  # Decision Tree
 
     def choose_AI_difficulty(self):
         game_mode = 0
