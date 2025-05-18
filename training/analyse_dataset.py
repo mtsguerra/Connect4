@@ -241,7 +241,7 @@ def analyze_dataset(dataset_path=None):
     """
     # Set default dataset path if not provided
     if dataset_path is None:
-        dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "connect4_dataset.csv")
+        dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "connect4_dataset_mixed.csv")
     
     # Load the dataset
     df = load_dataset(dataset_path)
