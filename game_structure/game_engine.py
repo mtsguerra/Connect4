@@ -6,9 +6,9 @@ from game_structure import Board
 from ai_alg import basic_heuristic as b, alpha_beta as a, monte_carlo as m
 from training.decision_tree_player import decision_tree_move
 
-
 def first_player_move(bd: Board, interface: any, board: np.ndarray, turn: int, event: any) -> bool:
-    """Set the column of human move"""
+    """Define a coluna jogada pelo jogador 1"""
+    
     col = get_human_column(interface, event)
     if not is_valid(board, col): return False
 
@@ -16,31 +16,32 @@ def first_player_move(bd: Board, interface: any, board: np.ndarray, turn: int, e
     make_move(bd, interface, board, turn, col)
     return True
 
-
 def get_human_column(interface: any, event: any):
-    """Gets the column that the mouse selected"""
+    """Obtém a coluna selecionada pelo mouse"""
+    
     posx = event.pos[0]
     col = int(math.floor(posx / interface.pixels)) - 2
     return col
 
-
 def available_moves(board: np.ndarray) -> list | int:
+    """Retorna uma lista de colunas disponíveis para jogar, ou -1 se não houver"""
+    
     avaiable_moves = []
     for i in range(s.COLUMNS):
         if (board[5][i]) == 0:
             avaiable_moves.append(i)
     return avaiable_moves if len(avaiable_moves) > 0 else -1
 
-
 def ai_move(bd: Board, interface: any, game_mode: int, board: np.ndarray, turn: int) -> int:
-    """Set the column of the AI move"""
+    """Define a coluna jogada pelo jogador 2"""
+    
     ai_column = get_ai_column(board, game_mode, turn)
     game_over = make_move(bd, interface, board, turn, ai_column)
     return game_over
 
-
 def get_ai_column(board: Board, game_mode: int, player: int = 2) -> int:
-    """Select the chosen AI algorithm to make a move"""
+    """Seleciona o algoritmo de IA escolhido para jogar"""
+    
     opponent = 1 if player == 2 else 2
 
     if game_mode == 2:
@@ -54,57 +55,57 @@ def get_ai_column(board: Board, game_mode: int, player: int = 2) -> int:
     return 0
 
 def simulate_move(board: np.ndarray, piece: int, col: int) -> np.ndarray:
-    """Simulate a move in a copy of the board"""
+    """Simula uma jogada em uma cópia do tabuleiro"""
+    
     board_copy = board.copy()
     row = get_next_open_row(board_copy, col)
     drop_piece(board_copy, row, col, piece)
     return board_copy
 
-
 def make_move(bd: Board, interface: any, board: np.ndarray, turn: int, move: int):
-    """Make the move and see if the move is a winning one"""
+    """Executa a jogada e verifica se ela resulta em vitória ou empate"""
 
     row = get_next_open_row(board, move)
-    drop_piece(board, row, move, turn)  # adds the new piece to the data matrix
-    interface.draw_new_piece(row + 1, move + 2, turn)  # adds new piece to the screen
+    drop_piece(board, row, move, turn) 
+    interface.draw_new_piece(row + 1, move + 2, turn)
     pygame.display.update()
     bd.print_board()
 
     return winning_move(board, turn) or is_game_tied(board)
 
-
 def get_next_open_row(board: np.ndarray, col: int) -> int:
-    """Given a column, return the first row avaiable to set a piece"""
+    """Retorna a linha disponível para colocar a peça na coluna escolhida"""
+    
     for row in range(s.ROWS):
         if board[row, col] == 0:
             return row
     return -1
 
-
 def drop_piece(board: np.ndarray, row: int, col: int, piece: int) -> None:
-    """Insert a piece into board on correct location"""
+    """Insere a peça no tabuleiro na posição escolhida"""
+    
     board[row, col] = piece
 
-
 def is_game_tied(board: np.ndarray) -> bool:
-    """Assert if the game is tied"""
+    """Verifica se o jogo empatou"""
+    
     if winning_move(board, s.SECOND_PLAYER_PIECE) or winning_move(board, s.FIRST_PLAYER_PIECE): return False
     for i in range(len(board)):
         for j in range(len(board[0])):
             if board[i][j] == 0: return False
     return True
 
-
 def is_valid(board: np.ndarray, col: int) -> bool:
-    """Analize if chosen column is valid"""
+    """Analisa se a coluna escolhida é válida"""
+    
     if not 0 <= col < s.COLUMNS: return False
     row = get_next_open_row(board, col)
     return 0 <= row <= 5
 
-
 def winning_move(board: np.ndarray, piece: int) -> bool:
+    """Analisa se a peça colocada resultou em vitória"""
+    
     rows, cols = board.shape
-    # Verifica todas as posições possíveis para uma sequência de 4 peças do jogador
     for row in range(rows):
         for col in range(cols):
             if int(board[row, col]) == piece:
@@ -114,10 +115,10 @@ def winning_move(board: np.ndarray, piece: int) -> bool:
                 # Checa verticalmente
                 if row + 3 < rows and all(board[row + i, col] == piece for i in range(4)):
                     return True
-                # Checa diagonal ascendente (direita e para cima)
+                # Checa diagonal ascendente
                 if row - 3 >= 0 and col + 3 < cols and all(board[row - i, col + i] == piece for i in range(4)):
                     return True
-                # Checa diagonal descendente (direita e para baixo)
+                # Checa diagonal descendente
                 if row + 3 < rows and col + 3 < cols and all(board[row + i, col + i] == piece for i in range(4)):
                     return True
     return False
