@@ -2,44 +2,37 @@ import os
 import sys
 import time
 
-# Add project root to path
+# Adiciona o diretório raiz do projeto ao path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def run_full_pipeline():
-    """Run the full Connect4 pipeline: generate data, train model, test model"""
+    """Executa o pipeline completo do Connect4: treina o modelo, testa o modelo"""
+    
     start_time = time.time()
     
-    print("=== STEP 1: Generate Connect4 Dataset ===")
-    from generate_connect4_dataset import generate_dataset
+    # Como o dataset ja foi gerado em outro programa este é apenas para treinar
     
-    # Generate dataset
-    generate_dataset(
-        n_games=200,
-        search_time=1.0,
-        out_file="connect4_dataset.csv"
-    )
+    print("\n=== ETAPA 1: Treinar Modelo de Árvore de Decisão ID3 ===")
+    from decision_tree import train_iris_model, train_connect4_model
     
-    print("\n=== STEP 2: Train ID3 Decision Tree Model ===")
-    from training.decision_tree import train_iris_model, train_connect4_model
+    # Treina no dataset iris como aquecimento
+    print("\nTreinando no dataset iris (aquecimento):")
+    train_iris_model(iris_path="Connect4-main/training/iris.csv")
     
-    # Train on iris dataset first as a warm-up
-    print("\nTraining on iris dataset (warm-up):")
-    train_iris_model(iris_path="training/iris.csv")
-    
-    # Train on Connect4 dataset
-    print("\nTraining on Connect4 dataset:")
+    # Treina no dataset Connect4
+    print("\nTreinando no dataset Connect4:")
     connect4_model = train_connect4_model(
-        data_path="training/data/connect4_dataset.csv",
+        data_path="Connect4-main/training/data/connect4_dataset_mixed.csv",
         max_depth=10,
-        save_path="training/data/connect4_tree_model.pkl"
+        save_path="Connect4-main/training/data/connect4_tree_model_mixed.pkl"
     )
     
-    print("\n=== STEP 3: Compare MCTS and Decision Tree Players ===")
-    print("\nNote: To compare MCTS and Decision Tree players, run:")
-    print("python training/compare_ai_players.py --games 10")
+    print("\n=== ETAPA 2: Comparar Jogadores MCTS e Árvore de Decisão ===")
+    print("\nNota: Para comparar os jogadores MCTS e Árvore de Decisão, execute:")
+    print("python Connect4-main/training/compare_ai_players.py --games 10")
     
     total_time = time.time() - start_time
-    print(f"\nFull pipeline completed in {total_time/60:.2f} minutes")
+    print(f"\nPipeline completo executado em {total_time/60:.2f} minutos")
 
 if __name__ == "__main__":
     run_full_pipeline()
