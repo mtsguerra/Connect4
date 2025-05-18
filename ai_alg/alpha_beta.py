@@ -5,16 +5,14 @@ from ai_alg import heuristic as h
 
 
 def alpha_beta(board: np.ndarray) -> int:
-    """
-    Selects the best move using the Alpha-Beta pruning algorithm with a fixed depth limit.
-    """
+    """Usando o algoritmo de alpha-beta, escolhe a melhor jogada até uma certa profundidade"""
     max_depth = 5
     best_col = -1
     best_score = float('-inf')
 
     for new_board, col in generate_children(board, s.SECOND_PLAYER_PIECE):
         if game.winning_move(new_board, s.SECOND_PLAYER_PIECE):
-            return col  # Immediate win
+            return col
         score = evaluate_position(
             new_board, current_depth=1,
             alpha=float('-inf'), beta=float('inf'),
@@ -27,23 +25,9 @@ def alpha_beta(board: np.ndarray) -> int:
     return best_col
 
 
-def evaluate_position(
-    board: np.ndarray,
-    current_depth: int,
-    alpha: float,
-    beta: float,
-    depth_limit: int,
-    is_maximizing: bool
-) -> float:
-    """
-    Recursively evaluates a board position using Minimax with Alpha-Beta pruning.
-    """
-    if (
-        current_depth == depth_limit or
-        game.winning_move(board, s.FIRST_PLAYER_PIECE) or
-        game.winning_move(board, s.SECOND_PLAYER_PIECE) or
-        game.is_game_tied(board)
-    ):
+def evaluate_position(board: np.ndarray,current_depth: int,alpha: float,beta: float,depth_limit: int,is_maximizing: bool) -> float:
+    """Usa minimax e alpha-beta para avaliar o tabuleiro"""
+    if (current_depth == depth_limit or game.winning_move(board, s.FIRST_PLAYER_PIECE) or game.winning_move(board, s.SECOND_PLAYER_PIECE) or game.is_game_tied(board)):
         return h.calculate_board_score(board, s.SECOND_PLAYER_PIECE, s.FIRST_PLAYER_PIECE)
 
     if is_maximizing:
@@ -53,7 +37,7 @@ def evaluate_position(
             max_eval = max(max_eval, evaluation)
             alpha = max(alpha, evaluation)
             if beta <= alpha:
-                break  # Beta cut-off
+                break
         return max_eval
 
     else:
@@ -63,21 +47,17 @@ def evaluate_position(
             min_eval = min(min_eval, evaluation)
             beta = min(beta, evaluation)
             if beta <= alpha:
-                break  # Alpha cut-off
+                break
         return min_eval
 
 
 def generate_children(board: np.ndarray, piece: int):
-    """
-    Generates all valid child boards for a given piece.
-    """
+    """Gera tabuleiros filhos para uma determinada peça."""
     children = []
     available = game.available_moves(board)
     if available == -1:
         return children
-
     for col in available:
         new_board = game.simulate_move(board, piece, col)
         children.append((new_board, col))
-
     return children
