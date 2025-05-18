@@ -1,39 +1,46 @@
 import pickle
 from graphviz import Digraph
 
-# --- Load your model ---
+# --- Carrega o modelo de árvore de decisão treinado ---
 with open("Connect4-main/training/data/connect4_tree_model_300games.pkl", "rb") as f:
     model = pickle.load(f)
 
+# Normaliza acesso à raiz da árvore
 root = getattr(model, "root", model)
 
-# --- Create Graphviz graph ---
-dot = Digraph(comment="Connect4 Decision Tree")
-node_counter = 0
+# --- Cria o grafo Graphviz para visualizar a árvore ---
+dot = Digraph(comment="Árvore de Decisão Connect4")
+contador_nos = 0
 
-dot.attr(rankdir="TB")  # TB = top-to-bottom (instead of LR = left-to-right)
+# Configuração para o grafo crescer de cima para baixo
+dot.attr(rankdir="TB")
 
-def add_nodes_edges(node, parent_id=None, edge_label=""):
-    global node_counter
-    node_id = f"n{node_counter}"
-    node_counter += 1
+def adicionar_nos_e_arestas(no, id_pai=None, rotulo_aresta=""):
+    """Adiciona recursivamente nós e arestas no grafo para cada nó da árvore"""
+    global contador_nos
+    id_no = f"n{contador_nos}"
+    contador_nos += 1
 
-    if node.is_leaf:
-        label = f"Predict: {node.prediction}"
-        dot.node(node_id, label, shape="box", style="filled", color="lightblue")
+    # Se for folha, destaque e mostre previsão
+    if no.is_leaf:
+        label = f"Previsão: {no.prediction}"
+        dot.node(id_no, label, shape="box", style="filled", color="lightblue")
     else:
-        label = f"{node.feature}"
-        dot.node(node_id, label, shape="ellipse")
+        label = f"Pergunta: {no.feature}"
+        dot.node(id_no, label, shape="ellipse")
 
-    if parent_id is not None:
-        dot.edge(parent_id, node_id, label=str(edge_label))
+    # Conecta ao nó pai, se existir
+    if id_pai is not None:
+        dot.edge(id_pai, id_no, label=str(rotulo_aresta))
 
-    if not node.is_leaf:
-        for val, child in node.children.items():
-            add_nodes_edges(child, node_id, edge_label=val)
+    # Se não for folha, processa filhos
+    if not no.is_leaf:
+        for valor, filho in no.children.items():
+            adicionar_nos_e_arestas(filho, id_no, rotulo_aresta=valor)
 
-add_nodes_edges(root)
+# Começa a recursão pela raiz
+adicionar_nos_e_arestas(root)
 
-# --- Render the tree ---
-dot.render("connect4_tree", format="png", cleanup=False)
-print("✅ Graph rendered as 'connect4_tree.png'")
+# --- Renderiza a árvore para arquivo PNG ---
+saida = dot.render("connect4_tree", format="png", cleanup=False)
+print("Árvore de decisão renderizada como 'connect4_tree.png'")
