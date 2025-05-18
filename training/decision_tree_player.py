@@ -1,5 +1,7 @@
 import os
 import sys
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 
 # Add project root to path
@@ -54,47 +56,11 @@ def is_valid_move(board, col):
     return board[0][col] == 0
 
 def fallback_strategy(board):
-    """Simple strategy when decision tree fails"""
-    # Try center column first, then adjacent columns
+    """Prefer center columns but randomize among valid ones."""
     preferred_cols = [3, 2, 4, 1, 5, 0, 6]
-    
-    # Check for winning move
-    for col in range(board.shape[1]):
-        if not is_valid_move(board, col):
-            continue
-            
-        # Try move
-        temp_board = board.copy()
-        row = get_next_open_row(temp_board, col)
-        temp_board[row][col] = s.SECOND_PLAYER_PIECE
-        
-        if is_winning_move(temp_board, s.SECOND_PLAYER_PIECE):
-            return col
-    
-    # Check for blocking opponent's win
-    for col in range(board.shape[1]):
-        if not is_valid_move(board, col):
-            continue
-            
-        # Try move for opponent
-        temp_board = board.copy()
-        row = get_next_open_row(temp_board, col)
-        temp_board[row][col] = s.FIRST_PLAYER_PIECE
-        
-        if is_winning_move(temp_board, s.FIRST_PLAYER_PIECE):
-            return col
-    
-    # Use preferred column order
-    for col in preferred_cols:
-        if is_valid_move(board, col):
-            return col
-            
-    # Fallback to first available column
-    for col in range(board.shape[1]):
-        if is_valid_move(board, col):
-            return col
-            
-    # No valid moves
+    valid_cols = [col for col in preferred_cols if is_valid_move(board, col)]
+    if valid_cols:
+        return np.random.choice(valid_cols)
     return -1
 
 def get_next_open_row(board, col):
