@@ -276,27 +276,64 @@ def load_and_split_data(file_path, test_size=0.2, random_seed=42):
     
     return X_train, y_train, X_test, y_test
 
+
 def evaluate_model(y_true, y_pred):
     """Calculate and print model performance metrics"""
-    # Calculate accuracy
-    accuracy = np.mean(y_true == y_pred) * 100
-    print(f"Accuracy: {accuracy:.2f}%")
+    # Create a copy of arrays to prevent modifying the originals
+    y_true_clean = np.array(y_true).copy()
+    y_pred_clean = np.array(y_pred).copy()
+    
+    # Replace None values in predictions with a special value (-1)
+    none_indices = [i for i, val in enumerate(y_pred_clean) if val is None]
+    if none_indices:
+        print(f"Warning: Found {len(none_indices)} None predictions. Replacing with special value for evaluation.")
+        for i in none_indices:
+            y_pred_clean[i] = -1
+    
+    # Calculate accuracy (only on non-None predictions)
+    valid_indices = [i for i, val in enumerate(y_pred) if val is not None]
+    
+    if len(valid_indices) > 0:
+        accuracy = np.mean(y_true_clean[valid_indices] == y_pred_clean[valid_indices]) * 100
+        print(f"Accuracy: {accuracy:.2f}% (excluding None predictions)")
+        
+        # Calculate overall accuracy including None as incorrect
+        overall_accuracy = np.mean(y_true == y_pred) * 100
+        print(f"Overall accuracy: {overall_accuracy:.2f}% (counting None as incorrect)")
+    else:
+        print("Warning: All predictions are None!")
+        accuracy = 0
     
     # Calculate class distribution
-    class_dist = Counter(y_pred)
+    class_dist = {}
+    for pred in y_pred:
+        pred_key = str(pred)  # Convert to string to handle None safely
+        if pred_key not in class_dist:
+            class_dist[pred_key] = 0
+        class_dist[pred_key] += 1
+    
     print("\nPredicted class distribution:")
     for col, count in sorted(class_dist.items()):
         print(f"Column {col}: {count} ({count/len(y_pred)*100:.2f}%)")
     
-    # Create confusion matrix
-    classes = sorted(np.unique(np.concatenate([y_true, y_pred])))
+    # Get all unique classes excluding None
+    true_classes = set([y for y in y_true if y is not None])
+    pred_classes = set([y for y in y_pred if y is not None])
+    classes = sorted(true_classes.union(pred_classes))
+    
+    # Create confusion matrix (excluding None predictions)
     conf_matrix = np.zeros((len(classes), len(classes)), dtype=int)
     
-    for true_idx, true_val in enumerate(classes):
-        for pred_idx, pred_val in enumerate(classes):
-            conf_matrix[true_idx, pred_idx] = np.sum((y_true == true_val) & (y_pred == pred_val))
+    for i in range(len(y_true_clean)):
+        if y_pred_clean[i] == -1:  # Skip None predictions
+            continue
+            
+        # Find indices in our sorted classes array
+        true_idx = classes.index(y_true_clean[i])
+        pred_idx = classes.index(y_pred_clean[i])
+        conf_matrix[true_idx, pred_idx] += 1
     
-    print("\nConfusion Matrix:")
+    print("\nConfusion Matrix (excluding None predictions):")
     # Print header
     header = " " * 10
     for c in classes:
@@ -312,9 +349,10 @@ def evaluate_model(y_true, y_pred):
     
     # Calculate per-class metrics
     for c in classes:
-        true_positives = np.sum((y_true == c) & (y_pred == c))
-        all_predicted = np.sum(y_pred == c)
-        all_actual = np.sum(y_true == c)
+        c_idx = classes.index(c)
+        true_positives = conf_matrix[c_idx, c_idx]
+        all_predicted = np.sum(conf_matrix[:, c_idx])
+        all_actual = np.sum(conf_matrix[c_idx, :])
         
         precision = true_positives / all_predicted if all_predicted > 0 else 0
         recall = true_positives / all_actual if all_actual > 0 else 0
@@ -326,6 +364,7 @@ def evaluate_model(y_true, y_pred):
         print(f"  F1-score: {f1:.4f}")
     
     return accuracy, conf_matrix
+
 
 def train_connect4_model(data_path=None, max_depth=10, save_path=None):
     """Train a decision tree on Connect4 dataset"""
