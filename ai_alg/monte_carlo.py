@@ -5,149 +5,115 @@ from math import sqrt, log
 from ai_alg import heuristic as h
 
 class Node:
-    """
-    Represents a node in the Monte Carlo search tree.
-    Each node corresponds to a game state (board configuration).
-    """
+    """Representa um nó na árvore de busca Monte Carlo, onde cada nó representa uma configuração diferente do tabuleiro"""
+    
     def __init__(self, board, last_player, parent=None) -> None:
-        self.board = board  # Current board state
-        self.parent = parent  # Parent node in the tree
-        self.children = []  # List of child nodes
-        self.visits = 0  # Number of times this node has been visited
-        self.wins = 0  # Number of wins achieved from this node
-        # Determine current player based on who played last
+        self.board = board  # Estado atual do tabuleiro
+        self.parent = parent  # Nó pai na árvore
+        self.children = []  # Lista de nós filhos
+        self.visits = 0  # Número de vezes que este nó foi visitado
+        self.wins = 0  # Número de vitórias alcançadas a partir deste nó
+        # Determina o jogador atual com base em que jogou por ultimo
         self.current_player = 1 if last_player == 2 else 2
 
     def __str__(self) -> str:
-        """String representation of node for debugging"""
-        string = "Wins: " + str(self.wins) + '\n'
-        string += "Total visits: " + str(self.visits) + '\n'
-        string += "UCB score: " + str(self.ucb()) + '\n'
-        string += "Win probability: " + str(self.score()) + '\n'
+        """Representação em string do nó para depuração"""
+        
+        string = "Vitórias: " + str(self.wins) + '\n'
+        string += "Total de visitas: " + str(self.visits) + '\n'
+        string += "Pontuação UCB: " + str(self.ucb()) + '\n'
+        string += "Probabilidade de vitória: " + str(self.score()) + '\n'
         return string
 
     def add_children(self) -> None:
-        """
-        Generate all possible moves from current board state and 
-        add them as children to this node
-        """
-        # If children already exist or no moves are available, do nothing
+        """Gera todos possíveis movimentos no tabuleiro atual, adicionando-os como filhos deste nó"""
+        
         if (len(self.children) != 0) or (game.available_moves(self.board) == -1):
             return
             
-        # Generate a child node for each possible move
         for col in game.available_moves(self.board):
-            # Create a copy of the board with the new move applied
+            # Cria uma cópia do tabuleiro com a nova jogada aplicada
             if self.current_player == s.FIRST_PLAYER_PIECE:
                 copy_board = game.simulate_move(self.board, s.SECOND_PLAYER_PIECE, col)
             else:
                 copy_board = game.simulate_move(self.board, s.FIRST_PLAYER_PIECE, col)
                 
-            # Add the new node and the column that generated it to the children list
-            self.children.append((Node(board=copy_board, 
-                                       last_player=self.current_player, 
-                                       parent=self), col))
+            # Adiciona o novo nó e a coluna que o gerou à lista de filhos
+            self.children.append((Node(board=copy_board, last_player=self.current_player, parent=self), col))
 
     def select_children(self):
-        """
-        Randomly select up to 4 children to explore
-        This limits branching factor to improve efficiency
-        """
+        """Seleciona aleatoriamente no máximo 4 filhos para apurar a busca, melhorando assim a sua eficiência"""
+        
         if (len(self.children) > 4):
             return random.sample(self.children, 4)
         return self.children
 
     def ucb(self) -> float:
-        """
-        Calculate Upper Confidence Bound for node selection
-        Balances exploitation (known good moves) with exploration (unexplored moves)
-        """
+        """Cacula o UCB (Upper Confidence Bound) para escolher os nós, equilibrando assim as escolhas aprofundadas e as não"""
+        
         if self.visits == 0:
-            return float('inf')  # Unvisited nodes have highest priority
+            return float('inf')  # Nós não visitados têm prioridade máxima
             
-        # UCB formula: wins/visits + C * sqrt(ln(parent_visits)/visits)
+        # Fórmula UCB: wins/visits + C * sqrt(ln(parent_visits)/visits)
         exploitation = self.wins / self.visits
         exploration = sqrt(2) * sqrt(log(self.parent.visits) / self.visits)
         return exploitation + exploration
         
     def score(self) -> float:
-        """Calculate win rate (wins/visits) for this node"""
+        """Calcula a taxa de vitórias para este nó"""
         if self.visits == 0:
             return 0
         return self.wins / self.visits
 
 
 class monte_carlo:
-    """
-    Monte Carlo Tree Search implementation for Connect Four
-    Uses UCB1 for node selection and heuristic-guided simulation
-    """
+    """Implementação do algoritmo de Monte Carlo TS, usando UCB1 para escolher os nós e simulando usando heurística"""
+    
     def __init__(self, root: Node) -> None:
         self.root = root
 
     def start(self, max_time: int):
-        """
-        Initialize search by performing initial simulations on root's children
-        Then run the main MCTS algorithm
-        """
-        # Generate children for the root node
-        self.root.add_children()
+        """Inicia a busca realizando simulações iniciais nos filhos da raiz, executando em seguida o algoritmo mcts"""
         
-        # Perform initial simulations on each child
+        self.root.add_children()   
         for child in self.root.children:
-            # If we find an immediate winning move, return it
             if game.winning_move(child[0].board, s.SECOND_PLAYER_PIECE):
-                return child[1]
-                
-            # Run 6 simulations for each child to get initial statistics
+                return child[1]  
             for _ in range(6):
                 result = self.rollout(child[0])
                 self.back_propagation(child[0], result)
                 
-        # Start the main MCTS algorithm
         return self.search(max_time)
 
     def search(self, max_time: int) -> int:
-        """
-        Main MCTS algorithm: select, expand, simulate, backpropagate
-        Runs until time limit is reached
-        """
-        start_time = time.time()
+        """Executa o algoritmo princiapl do mcts até o limite de tempo"""
         
-        # Continue until time limit is reached
+        start_time = time.time()
         while time.time() - start_time < max_time:
-            # Select a leaf node to explore
             selected_node = self.select(self.root)
             
+            # Analisa se o nó foi ou não visitado, mudando ou não de onde partir
             if selected_node.visits == 0:
-                # If node hasn't been visited, simulate from it directly
                 result = self.rollout(selected_node)
                 self.back_propagation(selected_node, result)
             else:
-                # If node has been visited, expand it and simulate its children
                 selected_children = self.expand(selected_node)
                 for child in selected_children:
                     result = self.rollout(child[0])
                     self.back_propagation(child[0], result)
-                    
-        # Return the best move based on statistics gathered
+                                   
         return self.best_move()
 
     def select(self, node: Node) -> Node:
-        """
-        Select the most promising leaf node to explore
-        Uses UCB to balance exploration and exploitation
-        """
+        """Seleciona o nó com maiores chances, utilizando UCB para equilibrar"""
+        
         if node.children == []:
-            # Base case: node is a leaf
             return node
         else:
-            # Select best child based on UCB and continue recursively
             node = self.best_child(node)
             return self.select(node)
 
     def best_child(self, node: Node) -> Node:
-        """Select child with highest UCB score"""
         best_child = None
         best_score = float('-inf')
         
@@ -160,51 +126,38 @@ class monte_carlo:
         return best_child
 
     def back_propagation(self, node: Node, result: int) -> None:
-        """
-        Update statistics for all nodes from leaf to root
-        Increment visit count and win count if applicable
-        """
+        """Atualiza os dados para todos os nós da árvore, incrementando visit count e possívelmente win count"""
+        
         while node:
-            node.visits += 1  # Increment visit count
-            
-            # Increment win count if this node's player won the simulation
+            node.visits += 1
             if node.current_player == result:
                 node.wins += 1
-                
-            # Move up to parent node
             node = node.parent
 
     def expand(self, node: Node) -> Node:
-        """
-        Add all possible child nodes and select some for simulation
-        """
+        """Adiciona todos os possíveis nós filhos e seleciona alguns"""
+        
         node.add_children()
         return node.select_children()
 
     def rollout(self, node: Node) -> int:
-        """
-        Simulate a game from the current node using heuristic-guided play
-        Returns the winner of the simulation
-        """
+        """Simula uma possível partida a partir do nó atual, utilizando de jogadas guiadas por heurística, retornando assim o vencedor da simulação"""
+        
         board = node.board.copy()
-        max_depth = 6  # Limit simulation depth for efficiency
+        max_depth = 6
         players = itertools.cycle([s.SECOND_PLAYER_PIECE, s.FIRST_PLAYER_PIECE])
         current_player = next(players)
 
         for _ in range(max_depth):
-            # Check if game is already decided
             if game.winning_move(board, s.SECOND_PLAYER_PIECE) or game.winning_move(board, s.FIRST_PLAYER_PIECE):
                 break
             if game.is_game_tied(board):
-                return 0  # Tie game
-                
+                return 0   
             current_player = next(players)
-            moves = game.available_moves(board)
-            
+            moves = game.available_moves(board) 
             if moves == -1:
-                return 0  # No moves available
-                
-            # Use heuristic to choose best move (not random)
+                return 0 
+            # Usa heurística para escolher a melhor jogada (não aleatória)
             best_move = max(
                 moves,
                 key=lambda col: h.calculate_board_score(
@@ -214,24 +167,21 @@ class monte_carlo:
                 )
             )
             
-            # Apply the selected move
             board = game.simulate_move(board, current_player, best_move)
 
         return current_player
 
     def best_move(self) -> int:
-        """
-        Select the best move based on win rates of root's children
-        If multiple moves have the same score, choose randomly
-        """
-        max_score = float('-inf')
-        scores = {}  # Store (column, score) pairs
-        columns = []  # Store columns with the best score
+        """Seleciona as melhores opções, baseado na taxa de vitória dos filhos da raíz, possívelmente com a mesma pontuação, "desempatando" aleatoriamente"""
         
-        # Calculate scores for all possible moves
+        max_score = float('-inf')
+        scores = {}  # Armazena os pares de colunas e suas respectivas pontuações
+        columns = []  # Armazena as colunas com a melhor pontuação
+        
+        # Calcula as pontuações possíveis
         for (child, col) in self.root.children:
             score = child.score()
-            print(f"Column: {col}")
+            print(f"Coluna: {col}")
             print(child)
             
             if score > max_score:
@@ -239,22 +189,20 @@ class monte_carlo:
                 
             scores[col] = score
             
-        # Collect all moves with the best score
+        # Armazena todos os movimentos que resultam com a melhor pontuação
         for col, score in scores.items():
             if score == max_score:
                 columns.append(col)
                 
-        # Choose randomly among best moves
+        # Escolhe aleatoriamente entre os melhores movimentos
         return random.choice(columns)
 
 
 def mcts(board: np.ndarray) -> int:
-    """
-    Entry point function that runs Monte Carlo Tree Search
-    Returns the best column (0-indexed) to play
-    """
+    """Função que executa a busca mcts e retorna a melhor coluna para se jogar"""
+    
     root = Node(board=board, last_player=s.SECOND_PLAYER_PIECE)
     mc = monte_carlo(root)
-    column = mc.start(3)  # Run MCTS for 3 seconds
-    print(column + 1)  # Print 1-indexed column for human readability
+    column = mc.start(3)  # Executa o MCTS por 3 segundos
+    print(column + 1)
     return column
