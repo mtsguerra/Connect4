@@ -1,14 +1,14 @@
 import pickle
 from graphviz import Digraph
 
-# --- Carrega o modelo de árvore de decisão treinado ---
+# Carrega o modelo de árvore de decisão treinado
 with open("Connect4-main/training/data/connect4_tree_model_300games.pkl", "rb") as f:
     model = pickle.load(f)
 
 # Normaliza acesso à raiz da árvore
 root = getattr(model, "root", model)
 
-# --- Cria o grafo Graphviz para visualizar a árvore ---
+# Cria o grafo Graphviz para visualizar a árvore
 dot = Digraph(comment="Árvore de Decisão Connect4")
 contador_nos = 0
 
@@ -17,6 +17,7 @@ dot.attr(rankdir="TB")
 
 def adicionar_nos_e_arestas(no, id_pai=None, rotulo_aresta=""):
     """Adiciona recursivamente nós e arestas no grafo para cada nó da árvore"""
+    
     global contador_nos
     id_no = f"n{contador_nos}"
     contador_nos += 1
@@ -41,6 +42,6 @@ def adicionar_nos_e_arestas(no, id_pai=None, rotulo_aresta=""):
 # Começa a recursão pela raiz
 adicionar_nos_e_arestas(root)
 
-# --- Renderiza a árvore para arquivo PNG ---
+# Renderiza a árvore para arquivo PNG
 saida = dot.render("connect4_tree", format="png", cleanup=False)
 print("Árvore de decisão renderizada como 'connect4_tree.png'")
