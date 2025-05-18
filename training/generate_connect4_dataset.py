@@ -90,8 +90,8 @@ def generate_game(params: Tuple[int, int, float, float]) -> List[List[int]]:
     return records
 
 def generate_dataset(
-    n_games: int = 10,
-    search_time: int = 1,
+    n_games: int = 750,
+    search_time: int = 2,
     out_file: str = "connect4_dataset_mixed.csv",
     mcts_prob: float = 0.45,
     ab_prob: float = 0.45
@@ -136,8 +136,8 @@ def generate_dataset(
 if __name__ == "__main__":
     print("Starting strong and diverse Connect4 dataset generation...")
     generate_dataset(
-        n_games=10,
-        search_time=1,
+        n_games=750,
+        search_time=2,
         out_file="connect4_dataset_mixed.csv",
         mcts_prob=0.45,
         ab_prob=0.45
