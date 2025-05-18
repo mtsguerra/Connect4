@@ -4,25 +4,25 @@ import numpy as np
 def calculate_board_score(board: np.ndarray, piece: int, opponent_piece: int) -> int:
     score = 0
 
-    # Check horizontal
+    # Verifica horizontal
     for col in range(s.COLUMNS - 3):
         for r in range(s.ROWS):
             segment = [board[r][col + i] for i in range(4)]
             score += weights(segment, piece, opponent_piece)
 
-    # Check vertical
+    # Verifica vertical
     for col in range(s.COLUMNS):
         for r in range(s.ROWS - 3):
             segment = [board[r + i][col] for i in range(4)]
             score += weights(segment, piece, opponent_piece)
 
-    # Check ascending diagonal
+    # Verifica diagonal ascendente
     for col in range(s.COLUMNS - 3):
         for r in range(s.ROWS - 3):
             segment = [board[r + i][col + i] for i in range(4)]
             score += weights(segment, piece, opponent_piece)
 
-    # Check descending diagonal
+    # Verifica diagonal descendente
     for col in range(s.COLUMNS - 3):
         for r in range(3, s.ROWS):
             segment = [board[r - i][col + i] for i in range(4)]
