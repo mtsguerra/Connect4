@@ -1,0 +1,6 @@
+pygame
+numpy
+pandas
+matplotlib
+seaborn
+graphviz
