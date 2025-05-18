@@ -4,6 +4,7 @@ import math
 import pygame
 from game_structure import Board
 from ai_alg import basic_heuristic as b, alpha_beta as a, monte_carlo as m
+from training.decision_tree_player import decision_tree_move
 
 
 def first_player_move(bd: Board, interface: any, board: np.ndarray, turn: int, event: any) -> bool:
@@ -41,18 +42,16 @@ def ai_move(bd: Board, interface: any, game_mode: int, board: np.ndarray, turn: 
 def get_ai_column(board: Board, game_mode: int, player: int = 2) -> int:
     """Select the chosen AI algorithm to make a move"""
     opponent = 1 if player == 2 else 2
-    
-    chosen_column = 0
-    if game_mode == 2:
-        chosen_column = b.evaluate_best_move(board, player, opponent)
-    elif game_mode == 3:
-        chosen_column = b.adversarial_lookahead(board, player, opponent)
-    elif game_mode == 4:
-        chosen_column = a.alpha_beta(board)
-    elif game_mode == 5:
-        chosen_column = m.mcts(board)
-    return chosen_column
 
+    if game_mode == 2:
+        return b.evaluate_best_move(board, player, opponent)
+    elif game_mode == 3:
+        return m.mcts(board)
+    elif game_mode == 4:
+        return a.alpha_beta(board)
+    elif game_mode == 5:
+        return decision_tree_move(board)
+    return 0
 
 def simulate_move(board: np.ndarray, piece: int, col: int) -> np.ndarray:
     """Simulate a move in a copy of the board"""
