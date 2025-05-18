@@ -4,6 +4,7 @@ from game_structure import Board
 from game_structure import style as s
 from game_structure import game_engine as game
 from ai_alg import basic_heuristic as b, alpha_beta as a, monte_carlo as m, heuristic as h
+from training.decision_tree_player import decision_tree_move  # <-- Add this import
 import itertools
 import time
 
@@ -78,16 +79,15 @@ def get_ai_types(game_mode):
     ai_mapping = {
         6: ["Easy", "Easy"],           # Easy x Easy
         7: ["Easy", "Hard"],           # Easy x Hard
-        8: ["Medium", "Medium"],       # Medium x Medium
-        9: ["Medium", "Challenge"],    # Medium x Challenge
-        10: ["Hard", "Challenge"],      # Hard x Challenge
-        11: ["Easy", "Medium"],         # Easy x Medium
-        12: ["Easy", "Challenge"],     # Easy x Challenge
-        13: ["Medium", "Hard"],        # Medium x Hard
-        14: ["Hard", "Hard"],          # Hard x Hard
-        15: ["Challenge", "Challenge"] # Challenge x Challenge
+        8: ["Medium", "Medium"],       # Medium x Medium (now MCTS)
+        9: ["Medium", "Challenge"],    # MCTS x DecisionTree
+        10: ["Hard", "Challenge"],     # AlphaBeta x DecisionTree
+        11: ["Easy", "Medium"],        # Easy x MCTS
+        12: ["Easy", "Challenge"],     # Easy x DecisionTree
+        13: ["Medium", "Hard"],        # MCTS x AlphaBeta
+        14: ["Hard", "Hard"],          # AlphaBeta x AlphaBeta
+        15: ["Challenge", "Challenge"] # DecisionTree x DecisionTree
     }
-    
     return ai_mapping.get(game_mode, ["Easy", "Easy"])
 
 def get_ai_column_for_type(board, player, ai_type):
@@ -100,14 +100,14 @@ def get_ai_column_for_type(board, player, ai_type):
         # Use basic heuristic (A*)
         return b.evaluate_best_move(board, player, opponent)
     elif ai_type == "Medium":
-        # Use A* with adversarial lookahead
-        return b.adversarial_lookahead(board, player, opponent)
+        # Use Monte Carlo Tree Search (MCTS)
+        return m.mcts(board)
     elif ai_type == "Hard":
         # Use Alpha-Beta pruning
         return a.alpha_beta(board)
     elif ai_type == "Challenge":
-        # Use Monte Carlo Tree Search
-        return m.mcts(board)
+        # Use Decision Tree agent
+        return decision_tree_move(board)
     else:
         # Default to basic heuristic
         return b.evaluate_best_move(board, player, opponent)
